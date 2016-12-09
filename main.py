@@ -1,5 +1,4 @@
 import random
-import math
 from sys import stdout
 import numpy
 
@@ -7,7 +6,7 @@ b_range = 1000
 v_range = 50
 
 
-def knapsack(total):
+def generate_knapsack(total):
     benefits = []
     volume = []
     for i in range(0, total):
@@ -92,8 +91,10 @@ def fitness(chromosomes):
         knapsackv = calculate(chromosomes[i])
         while knapsackv[1] > knapsack_capacity:
             item = random.randint(0, total_items - 1)
+            # print item
             while not_selected(chromosomes[i], item):
                 item = random.randint(1, total_items - 1)
+                print item
             new = ""
             if item == 0:
                 new = "0" + chromosomes[i][1:]
@@ -105,11 +106,20 @@ def fitness(chromosomes):
             knapsackv = calculate(chromosomes[i])
 
 
+def roulette_selection():
+    r = random.randint(0, volume_sum - 1)
+
+    for i in range(0, total_items):
+        r -= volume[i]
+        if r <= 0:
+            return i
+
+
 def select(chromosomes):
-    n1 = random.randint(0, total_items - 1)
+    n1 = roulette_selection()
     n2 = n1
     while n2 == n1:
-        n2 = random.randint(0, total_items - 1)
+        n2 = roulette_selection()
 
     c = [chromosomes[n1], chromosomes[n2]]
     indices = [n1, n2]
@@ -121,20 +131,25 @@ def crossover(selected):
     parent2 = selected[1]
     crossover_point = random.randint(0, total_items - 1)
 
-    child1 = parent1[:crossover_point + 1] + parent2[crossover_point + 1:]
-    child2 = parent2[:crossover_point + 1] + parent1[crossover_point + 1:]
+    p = numpy.random.binomial(1, crossover_rate)
+    if p:
+        child1 = parent1[:crossover_point + 1] + parent2[crossover_point + 1:]
+        child2 = parent2[:crossover_point + 1] + parent1[crossover_point + 1:]
+    else:
+        child1 = parent1
+        child2 = parent2
 
-    new1 = ""
-    new2 = ""
-    for i in range(0, total_items - 1):
-        p = numpy.random.binomial(1, 0.95)
-        if p:
-            new1 += child1[i]
-            new2 += child2[i]
-        else:
-            new1 += parent1[i]
-            new2 += parent2[i]
-    return [new1, new2]
+    # new1 = ""
+    # new2 = ""
+    # for i in range(0, total_items - 1):
+    #     p = numpy.random.binomial(1, 0.95)
+    #     if p:
+    #         new1 += child1[i]
+    #         new2 += child2[i]
+    #     else:
+    #         new1 += parent1[i]
+    #         new2 += parent2[i]
+    return [child1, child2]
 
 
 def negate(item):
@@ -147,22 +162,22 @@ def mutation(selected):
 
     chromosome1 = selected[0]
     chromosome2 = selected[1]
-    print  chromosome1, chromosome2 #what about last number...because it will go to total_item. not total_item+1$
+    # print chromosome1, chromosome2
 
     new1 = ""
     new2 = ""
     for i in range(0, total_items - 1):
-        p = numpy.random.binomial(1, 0.05)
+        p = numpy.random.binomial(1, mutation_rate)
         if p:
             if i == 0: 
                 new1 = negate(chromosome1[0]) + chromosome1[1:]
                 new2 = negate(chromosome2[0]) + chromosome2[1:]
             elif i == total_items - 1:
-                new1 = chromosome1[: total_items - 1] + negate(chromosome1[-1])
-                new2 = chromosome2[: total_items - 1] + negate(chromosome2[-1])
+                new1 = chromosome1[: i] + negate(chromosome1[-1])
+                new2 = chromosome2[: i] + negate(chromosome2[-1])
             else:
-                new1 = chromosome1[0: total_items - 1] + negate(chromosome1[total_items]) + chromosome1[total_items + 1:]
-                new2 = chromosome2[0: total_items - 1] + negate(chromosome2[total_items]) + chromosome2[total_items + 1:]
+                new1 = chromosome1[0: i] + negate(chromosome1[i]) + chromosome1[i + 1:]
+                new2 = chromosome2[0: i] + negate(chromosome2[i]) + chromosome2[i + 1:]
 
     return [new1, new2]
 
@@ -172,14 +187,18 @@ total_items = int(raw_input())
 print "Enter capacity : "
 knapsack_capacity = int(raw_input())
 
-[benefits, volume] = knapsack(total_items)
+[benefits, volume] = generate_knapsack(total_items)
+volume_sum = 0
+for i in range(0, total_items):
+    volume_sum += volume[i]
 
-
-# print_knapsack(total_items)
+print_knapsack(total_items)
 generate_chromosomes()
 
-limit = 30
+limit = 5
 generation = 0
+crossover_rate = 0.95
+mutation_rate = 0.05
 while generation <= limit:
     fitness(chromosomes)
     [indices, selected] = select(chromosomes)
