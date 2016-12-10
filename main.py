@@ -3,7 +3,7 @@ from sys import stdout
 import numpy
 
 b_range = 1000
-v_range = 50
+v_range = 35
 
 
 def generate_knapsack(total):
@@ -94,7 +94,7 @@ def fitness(chromosomes):
             # print item
             while not_selected(chromosomes[i], item):
                 item = random.randint(1, total_items - 1)
-                print item
+                # print item
             new = ""
             if item == 0:
                 new = "0" + chromosomes[i][1:]
@@ -120,7 +120,10 @@ def select(chromosomes):
     n2 = n1
     while n2 == n1:
         n2 = roulette_selection()
-
+    print ""
+    print n1, n2
+    print chromosomes[n1], "    ", chromosomes[n2]
+    print ""
     c = [chromosomes[n1], chromosomes[n2]]
     indices = [n1, n2]
     return [indices, c]
@@ -135,10 +138,12 @@ def crossover(selected):
     if p:
         child1 = parent1[:crossover_point + 1] + parent2[crossover_point + 1:]
         child2 = parent2[:crossover_point + 1] + parent1[crossover_point + 1:]
+        print 1, crossover_point, len(parent1), len(parent2)
     else:
+        print 2
         child1 = parent1
         child2 = parent2
-
+    print len(child1), len(child2)
     # new1 = ""
     # new2 = ""
     # for i in range(0, total_items - 1):
@@ -182,9 +187,9 @@ def mutation(selected):
     return [new1, new2]
 
 
-print "Number of items : "
+print "Number of items : ",
 total_items = int(raw_input())
-print "Enter capacity : "
+print "Enter capacity : ",
 knapsack_capacity = int(raw_input())
 
 [benefits, volume] = generate_knapsack(total_items)
@@ -195,7 +200,8 @@ for i in range(0, total_items):
 print_knapsack(total_items)
 generate_chromosomes()
 
-limit = 5
+limit = 2000
+population_size = total_items
 generation = 0
 crossover_rate = 0.95
 mutation_rate = 0.05
