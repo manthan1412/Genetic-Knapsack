@@ -182,7 +182,6 @@ def mutation():
 
 def find_best(curr_best, best, b_volume):
     l = len(curr_benefits)
-
     item_index = -1
 
     for i in range(0, l):
